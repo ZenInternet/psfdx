@@ -30,6 +30,7 @@ NB you only need to Import-Module psfdx once per PowerShell session
 **3. Create and use a Salesforce Alias**
 ```
 Add-SalesforceAlias -Username my@email.com -Alias myalias
+Select-SalesforceObjects -Query "SELECT Id,Name FROM Account LIMIT 10" -Username myalias
 ```
 
 **4. Retrieve every psfdx cmdlet**
