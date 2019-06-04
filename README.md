@@ -1,5 +1,9 @@
 # psfdx
 PowerShell module that wraps Salesforce SFDX command line interface
+# Pre-Requisites
+You must install Salesforce SFDX
+https://developer.salesforce.com/tools/sfdxcli
+
 # Installation
 ```
 git clone https://github.com/ZenInternet/psfdx
