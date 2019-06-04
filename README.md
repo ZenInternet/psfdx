@@ -19,7 +19,7 @@ Connect-Salesforce -IsSandbox
 A web browser will appear, login to Salesforce as you would normally.
 This uses Salesforce's standard authentication which encrypts and stores the credentials locally.
 
-Other psfdx commands require a username - typically email address or alias - to use the local encrypted authentication details
+Other psfdx commands require a username, typically email address or alias.
 
 **2. Retrieve first 10 Salesforce Accounts**
 ```
