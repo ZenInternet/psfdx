@@ -22,7 +22,9 @@ if ($LocalFile) {
     Copy-Item -Path $currentFile -Destination $destination -Force
 } else {
     Write-Verbose "Source File: $gitUrl"
-    (New-Object Net.WebClient).DownloadString($gitUrl) | Out-File "$pssfdxpath\psfdx.psm1" 
+    $response = Invoke-WebRequest -Uri $gitUrl -Verbose:$false
+    # TODO: Check WebRequest Status    
+    $response.Content | Out-File -FilePath (Join-Path -Path $pssfdxpath -ChildPath $filename) -Force
 }
 
 Write-Host "Installed."
