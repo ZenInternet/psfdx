@@ -297,9 +297,17 @@ function Get-SalesforceLogs {
 function Get-SalesforceLog {
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $true)][string] $LogId,
+        [Parameter(Mandatory = $false)][string] $LogId,
+        [Parameter(Mandatory = $false)][switch] $Last,
         [Parameter(Mandatory = $true)][string] $Username
-    )     
+    )   
+    
+    if ((-not $LogId) -and (-not $Last)) { throw "Please provide either -LogId OR -Last"}
+
+    if ($Last) {
+        $LogId = (Get-SalesforceLogs -Username $Username | Sort-Object StartTime -Descending | Select-Object -First 1).Id
+    }
+
     $values = sfdx force:apex:log:get -i $LogId -u $Username --json | ConvertFrom-Json
     # TODO: Check status
     return $values.result.log
