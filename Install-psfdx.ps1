@@ -1,11 +1,29 @@
-$modulespath = ($env:psmodulepath -split ";")[0]
-$pssfdxpath = "$modulespath\psfdx"
+[CmdletBinding()]
+Param([Parameter(Mandatory = $false)][switch] $LocalFile)     
 
+# Get Module Path
+$modulespath = ($env:psmodulepath -split ";")[0]
+$pssfdxpath = Join-Path -Path $modulespath -ChildPath "psfdx"
+Write-Verbose "Module Path: $pssfdxpath"
+
+# Get Source Path
+$filename = "psfdx.psm1"
+$gitUrl = "https://raw.githubusercontent.com/ZenInternet/psfdx/master/psfdx.psm1"
+
+# Install
 Write-Host "Creating module directory"
-New-Item -Type Container -Force -path $pssfdxpath | out-null
+New-Item -Type Container -Force -path $pssfdxpath | Out-Null
 
 Write-Host "Downloading and installing"
-(new-object net.webclient).DownloadString("https://raw.githubusercontent.com/ZenInternet/psfdx/master/psfdx.psm1") | Out-File "$pssfdxpath\psfdx.psm1" 
+$destination = Join-Path -Path $pssfdxpath -ChildPath $filename
+if ($LocalFile) {
+    $currentFile = Join-Path -Path $PSScriptRoot -ChildPath $filename        
+    Write-Verbose "Source File: $currentFile"
+    Copy-Item -Path $currentFile -Destination $destination -Force
+} else {
+    Write-Verbose "Source File: $gitUrl"
+    (New-Object Net.WebClient).DownloadString($gitUrl) | Out-File "$pssfdxpath\psfdx.psm1" 
+}
 
-Write-Host "Installed!"
+Write-Host "Installed."
 Write-Host 'Use "Import-Module psfdx" and then "Get-Command -Module psfdx"'

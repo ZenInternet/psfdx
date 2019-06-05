@@ -272,3 +272,35 @@ function Get-SalesforcePackage {
     }  # Type   
     return $results
 }
+
+function Watch-SalesforceLogs {
+    [CmdletBinding()]
+    Param(
+        [Parameter(Mandatory = $true)][string] $Username,
+        [Parameter(Mandatory = $false)][switch] $IncludeTraceFlag        
+    )    
+    if ($IncludeTraceFlag) {
+        sfdx force:apex:log:tail -c -u $Username
+    } else {
+        sfdx force:apex:log:tail -s -c -u $Username
+    }
+}
+
+function Get-SalesforceLogs {
+    [CmdletBinding()]
+    Param([Parameter(Mandatory = $true)][string] $Username)     
+    $values = sfdx force:apex:log:list -u $Username --json | ConvertFrom-Json
+    # TODO: Check status
+    return $values.result
+}
+
+function Get-SalesforceLog {
+    [CmdletBinding()]
+    Param(
+        [Parameter(Mandatory = $true)][string] $LogId,
+        [Parameter(Mandatory = $true)][string] $Username
+    )     
+    $values = sfdx force:apex:log:get -i $LogId -u $Username --json | ConvertFrom-Json
+    # TODO: Check status
+    return $values.result.log
+}
