@@ -328,3 +328,11 @@ function Convert-SalesforceLog {
     }
     return $results
 }
+
+function Out-Notepad {
+    [CmdletBinding()]
+    Param([Parameter(ValueFromPipeline, Mandatory = $true)][string] $Content)     
+    $filename = New-TemporaryFile
+    $Content | Out-File -FilePath $filename
+    notepad $filename
+}
