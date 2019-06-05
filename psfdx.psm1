@@ -304,3 +304,27 @@ function Get-SalesforceLog {
     # TODO: Check status
     return $values.result.log
 }
+
+function Convert-SalesforceLog {
+    [CmdletBinding()]
+    Param(
+        [Parameter(ValueFromPipeline, Mandatory = $true)][string] $Log
+    )      
+
+    Write-Warning "Function still in Development"
+
+    $results = @()
+    $lines = $Log.Split([Environment]::NewLine) | Select-Object -Skip 1 # Skip Header
+    $line = $lines | Select-Object -First 5
+    foreach ($line in $lines) {
+        $statements = $line.Split('|')
+        
+        $result = New-Object -TypeName PSObject
+        $result | Add-Member -MemberType NoteProperty -Name 'DateTime' -Value $statements[0]
+        $result | Add-Member -MemberType NoteProperty -Name 'LogType' -Value $statements[1]
+        if ($null -ne $statements[2]) { $result | Add-Member -MemberType NoteProperty -Name 'SubType' -Value $statements[2] }
+        if ($null -ne $statements[3]) { $result | Add-Member -MemberType NoteProperty -Name 'Detail' -Value $statements[3] }
+        $results += $result
+    }
+    return $results
+}
