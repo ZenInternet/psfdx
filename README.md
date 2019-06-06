@@ -17,7 +17,8 @@ Import-Module psfdx
 Connect-Salesforce -IsSandbox
 ```
 A web browser will appear, login to Salesforce as you would normally.
-This uses Salesforce's standard authentication which encrypts and stores the credentials locally.
+
+Uses Salesforce SFDX's standard authentication, credentials are encrypted and stored locally.
 
 Other psfdx commands require a username, typically email address or alias.
 
@@ -37,4 +38,9 @@ Select-SalesforceObjects -Query "SELECT Id,Name FROM Account LIMIT 10" -Username
 **4. Retrieve every psfdx cmdlet**
 ```
 Get-Command -Module psfdx
+```
+
+**5. Get Last Salesforce Debug Log and Open in Notepad
+```
+Get-SalesforceLog -Last -Username my@email.com | Out-Notepad
 ```
