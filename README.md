@@ -40,7 +40,7 @@ Select-SalesforceObjects -Query "SELECT Id,Name FROM Account LIMIT 10" -Username
 Get-Command -Module psfdx
 ```
 
-**5. Get Last Salesforce Debug Log and Open in Notepad
+**5. Get Last Salesforce Debug Log and Open in Notepad**
 ```
 Get-SalesforceLog -Last -Username my@email.com | Out-Notepad
 ```
