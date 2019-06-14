@@ -43,6 +43,15 @@ function Get-SalesforceScratchOrgs {
     return $values.result.scratchOrgs | Select-Object orgId, instanceUrl, username, connectedStatus, isDevHub, lastUsed, alias
 }
 
+function New-SalesforceScratchOrg {
+    [CmdletBinding()]
+    Param(
+        [Parameter(Mandatory = $false)][string] $DefinitionFile = 'config/project-scratch-def.json',
+        [Parameter(Mandatory = $true)][string] $Username
+    )       
+    return (sfdx force:org:create -f $DefinitionFile -v $Username --json | ConvertFrom-Json).result
+}
+
 function Select-SalesforceObjects {    
     [CmdletBinding()]
     Param(
