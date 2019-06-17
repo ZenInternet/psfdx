@@ -25,6 +25,22 @@ function Disconnect-Salesforce {
     sfdx force:auth:logout -u $Username -p
 }
 
+function Grant-SalesforceJWT {
+    [CmdletBinding()]
+    Param(
+        [Parameter(Mandatory = $true)][string] $ConsumerKey,
+        [Parameter(Mandatory = $true)][string] $Username,
+        [Parameter(Mandatory = $true)][string] $JwtKeyfile,
+        [Parameter(Mandatory = $false)][switch] $IsSandbox
+    )
+    if (-not(Test-Path $JwtKeyfile)) { throw "File does not exist: $JwtKeyfile"}
+    $url = "https://login.salesforce.com/"
+    if ($IsSandbox) { $url = "https://test.salesforce.com" }
+    
+    $result = sfdx force:auth:jwt:grant --clientid $ConsumerKey --username $Username --jwtkeyfile $JwtKeyfile --instanceurl $url --json
+    return ($result | ConvertFrom-Json).result
+}
+
 function Open-Salesforce {
     [CmdletBinding()]
     Param([Parameter(Mandatory = $true)][string] $Username )     
