@@ -377,5 +377,5 @@ function New-SalesforceProject {
         [Parameter(Mandatory = $false)][string][ValidateSet('standard','empty')] $Template = 'standard'
     )       
     $response = (sfdx force:project:create --projectname $Name --template $Template --json) | ConvertFrom-Json
-    return $response
+    return $response.result
 }
