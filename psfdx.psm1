@@ -369,3 +369,13 @@ function Out-Notepad {
     $Content | Out-File -FilePath $filename
     notepad $filename
 }
+
+function New-SalesforceProject {
+    [CmdletBinding()]
+    Param(
+        [Parameter(Mandatory = $true)][string] $Name,
+        [Parameter(Mandatory = $false)][string][ValidateSet('standard','empty')] $Template = 'standard'
+    )       
+    $response = (sfdx force:project:create --projectname $Name --template $Template --json) | ConvertFrom-Json
+    return $response
+}
