@@ -249,9 +249,8 @@ function Test-Salesforce {
     [CmdletBinding()]
     Param(                
         [Parameter(Mandatory = $true)][string] $Username
-    )    
-    $path = $PSScriptRoot
-    $values = (sfdx force:apex:test:run -l RunLocalTests -w:10 -d $PSScriptRoot -u $Username --json)
+    )        
+    sfdx force:apex:test:run -l RunLocalTests -w:10 -d $PSScriptRoot -u $Username --json | ConvertFrom-Json
 }
 
 function Invoke-SalesforceApexFile {
