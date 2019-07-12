@@ -55,8 +55,15 @@ function Get-Salesforce {
 
 function Get-SalesforceScratchOrgs {
     [CmdletBinding()]
+    Param(
+        [Parameter(Mandatory = $false)][switch] $Last
+    )
     $values = sfdx force:org:list --all --json | ConvertFrom-Json    
-    return $values.result.scratchOrgs | Select-Object orgId, instanceUrl, username, connectedStatus, isDevHub, lastUsed, alias
+    $scratchOrgs = $values.result.scratchOrgs | Select-Object orgId, instanceUrl, username, connectedStatus, isDevHub, lastUsed, alias
+    if ($Last) {
+        $scratchOrgs = $scratchOrgs | Sort-Object lastUsed -Descending | Select-Object -First 1
+    }
+    return $scratchOrgs
 }
 
 function New-SalesforceScratchOrg {
