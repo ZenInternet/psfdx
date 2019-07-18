@@ -201,6 +201,19 @@ function Set-SalesforceObject {
     return sfdx force:data:record:update -s $ObjectType -i $Id -v $FieldUpdates -u $Username
 }
 
+function Get-SalesforceRecordType {
+    [CmdletBinding()]
+    Param(        
+        [Parameter(Mandatory = $true)][string] $ObjectType,            
+        [Parameter(Mandatory = $true)][string] $Username
+    )    
+
+    $query = "SELECT Id, SobjectType, Name, DeveloperName, IsActive, IsPersonType"
+    $query += " FROM RecordType"
+    if ($ObjectType) { $query += " WHERE SobjectType = '$ObjectType'" }
+    return Select-SalesforceObjects -Query $query -Username $Username
+}
+
 function Test-SalesforceClass {
     [CmdletBinding()]
     Param(        
