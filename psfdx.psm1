@@ -83,14 +83,18 @@ function Select-SalesforceObjects {
         [Parameter(Mandatory = $false)][switch] $UseToolingApi
     )            
     Write-Verbose $Query
+
     if ($UseToolingApi) {
-        $json = (sfdx force:data:soql:query -q $Query -u $Username -t --json -r json)
+        $json = (sfdx force:data:soql:query -q $Query -u $Username -t --json)
     } else {
-        $json = (sfdx force:data:soql:query -q $Query -u $Username --json -r json)
+        $json = (sfdx force:data:soql:query -q $Query -u $Username --json)
     }  
-    $values = $json | ConvertFrom-Json     
-    # TODO: Check Status    
-    return $values.result.records
+    $values = $json | ConvertFrom-Json 
+    if ($values.status -ne 0) {
+        $values
+        throw 'Error'
+    }
+    return $values.result.records     
 }
 
 function Get-SalesforceLimits {
@@ -214,26 +218,6 @@ function Get-SalesforceRecordType {
     return Select-SalesforceObjects -Query $query -Username $Username
 }
 
-function Test-SalesforceClass {
-    [CmdletBinding()]
-    Param(        
-        [Parameter(Mandatory = $true)][string] $Name,       
-        [Parameter(Mandatory = $false)][string] $TestName, 
-        [Parameter(Mandatory = $true)][string] $Username
-    )
-
-    if ($TestName) {
-        $tests = "$Name.$TestName"
-        $values = (sfdx force:apex:test:run --tests $tests --synchronous -u $Username --json | ConvertFrom-Json)
-    } else {
-        $values = (sfdx force:apex:test:run --classnames $Name --synchronous -u $Username --json | ConvertFrom-Json)
-    }
-    $values.result.tests  
-    if ($values.result.summary.outcome -ne 'Passed') { 
-        throw ($values.result.summary.failing.tostring() + " Tests Failed") 
-    }  
-}
-
 function Pull-SalesforceCode {
     [CmdletBinding()]
     Param(
@@ -267,10 +251,33 @@ function Push-SalesforceCode {
 
 function Test-Salesforce {
     [CmdletBinding()]
-    Param(                
+    Param(        
+        [Parameter(Mandatory = $false)][string] $ClassName,       
+        [Parameter(Mandatory = $false)][string] $TestName, 
         [Parameter(Mandatory = $true)][string] $Username
-    )        
-    sfdx force:apex:test:run -l RunLocalTests -w:10 -d $PSScriptRoot -u $Username --json | ConvertFrom-Json
+    )   
+        
+    if ($ClassName -and $TestName) {        # Run specific Test in a Class
+        $cmd = "sfdx force:apex:test:run --tests $ClassName.$TestName --synchronous -u $Username --codecoverage -r json"                        
+    }     
+    elseif (-not $TestName) {               # Run Test Class
+        $cmd = "sfdx force:apex:test:run --classnames $ClassName --synchronous -u $Username --codecoverage -r json"           
+    }     
+    else {                                  # Run all Tests
+        $cmd = "sfdx force:apex:test:run -l RunLocalTests -w:10 -d $PSScriptRoot -u $Username --codecoverage -r json"        
+    }
+    $values = Invoke-Expression -Command $cmd | ConvertFrom-Json
+
+    [int]$codeCoverage = ($values.result.summary.testRunCoverage -replace '%')
+    if ($codeCoverage -lt 75) { 
+        $values.result.coverage.coverage                
+        throw 'Insufficent code coverage '
+    }
+
+    $values.result.tests
+    if ($values.result.summary.outcome -ne 'Passed') { 
+        throw ($values.result.summary.failing.tostring() + " Tests Failed") 
+    }
 }
 
 function Invoke-SalesforceApexFile {
