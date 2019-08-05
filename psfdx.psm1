@@ -302,7 +302,8 @@ function Add-SalesforceAlias {
         [Parameter(Mandatory = $true)][string] $Alias,       
         [Parameter(Mandatory = $true)][string] $Username
     )    
-    sfdx force:alias:set $Alias=$Username    
+    $cmd = "sfdx force:alias:set $Alias=$Username"
+    Invoke-Expression $cmd
 }
 
 function Get-SalesforcePackage {
