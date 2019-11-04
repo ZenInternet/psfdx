@@ -31,13 +31,18 @@ function Grant-SalesforceJWT {
         [Parameter(Mandatory = $true)][string] $ConsumerKey,
         [Parameter(Mandatory = $true)][string] $Username,
         [Parameter(Mandatory = $true)][string] $JwtKeyfile,
-        [Parameter(Mandatory = $false)][switch] $IsSandbox
+        [Parameter(Mandatory = $false)][switch] $IsSandbox,
+        [Parameter(Mandatory = $false)][switch] $SetDefaultUsername
     )
     if (-not(Test-Path $JwtKeyfile)) { throw "File does not exist: $JwtKeyfile"}
     $url = "https://login.salesforce.com/"
     if ($IsSandbox) { $url = "https://test.salesforce.com" }
-    
-    $result = sfdx force:auth:jwt:grant --clientid $ConsumerKey --username $Username --jwtkeyfile $JwtKeyfile --instanceurl $url --json
+
+    if ($SetDefaultUsername) {
+        $result = sfdx force:auth:jwt:grant --clientid $ConsumerKey --username $Username --jwtkeyfile $JwtKeyfile --instanceurl $url --setdefaultusername --json    
+    } else {
+        $result = sfdx force:auth:jwt:grant --clientid $ConsumerKey --username $Username --jwtkeyfile $JwtKeyfile --instanceurl $url --json
+    }        
     return ($result | ConvertFrom-Json).result
 }
 
