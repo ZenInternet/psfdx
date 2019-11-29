@@ -1,5 +1,7 @@
 $toolingApiObjects = @("SandboxInfo", "ProfileLayout")
 
+# this is a test comment
+
 function Get-SalesforceDateTime {
     [CmdletBinding()]
     Param([Parameter(Mandatory = $false)][datetime] $Datetime) 
