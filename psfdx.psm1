@@ -227,11 +227,23 @@ function Get-SalesforceRecordType {
 
 function Pull-SalesforceCode {
     [CmdletBinding()]
-    Param(
-        [Parameter(Mandatory = $true)][string][ValidateSet('ApexTrigger','ApexClass', 'LightningComponentBundle')] $CodeType,
-        [Parameter(Mandatory = $true)][string] $Username
+    Param(        
+        [Parameter(Mandatory = $true)][string] $Username,
+        [Parameter(Mandatory = $false)][string][ValidateSet('ApexTrigger','ApexClass', 'LightningComponentBundle')] $CodeType
     )  
-    sfdx force:source:retrieve -m $CodeType -u $Username
+
+    if ($CodeType) {
+        sfdx force:source:retrieve -m $CodeType -u $Username
+        return
+    }
+    
+    $metaTypes = Get-SalesforceMetaTypes -Username $Username    
+    $count = 0
+    foreach ($metaType in $metaTypes) {
+        sfdx force:source:retrieve -m $metaType -u $Username
+        $count = $count + 1   
+        Write-Progress -Activity 'Getting Salesforce MetaData' -Status $metaType -PercentComplete (($count / $metaTypes.count) * 100) 
+    }
 }
 
 function Push-SalesforceCode {
@@ -412,4 +424,15 @@ function New-SalesforceProject {
     )       
     $response = (sfdx force:project:create --projectname $Name --template $Template --json) | ConvertFrom-Json
     return $response.result
+}
+
+function Get-SalesforceMetaTypes {
+    [CmdletBinding()]
+    Param(
+        [Parameter(Mandatory = $true)][string] $Username     
+    )     
+
+    $describeMeta = (sfdx force:mdapi:describemetadata -u $username --json | ConvertFrom-Json)
+    $metaObjects = $describeMeta.result.metadataObjects    
+    return $metaObjects.xmlName | Sort-Object
 }
