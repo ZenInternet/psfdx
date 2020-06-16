@@ -400,10 +400,22 @@ function Export-SalesforceLogs {
     Write-Verbose "Output Folder: $OutputFolder"
 
     $logs = Get-SalesforceLogs -Username $Username | Sort-Object -Property StartTime -Descending | Select-Object -First $Limit
+    if ($null -eq $logs) {
+        Write-Verbose "No Logs"
+        return
+    }
+
+    $logsCount = ($logs | Measure-Object).Count + 1    
+    $i = 0
     foreach ($log in $logs) {
-        $filePath = Join-Path -Path $OutputFolder -ChildPath ($log.Id + ".log")
+        $fileName = $log.Id + ".log"
+        $filePath = Join-Path -Path $OutputFolder -ChildPath $fileName
         Write-Verbose "Exporting file: $filePath"
-        Get-SalesforceLog -LogId $log.Id -Username $Username | Out-File -FilePath $filePath      
+        Get-SalesforceLog -LogId $log.Id -Username $Username | Out-File -FilePath $filePath   
+
+        $percentCompleted = ($i / $logsCount) * 100
+        Write-Progress -Activity "Export Salesforce Logs" -Status "Completed $fileName" -PercentComplete $percentCompleted
+        $i = $i + 1
     }
 }
 
