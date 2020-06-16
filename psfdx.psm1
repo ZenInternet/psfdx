@@ -390,7 +390,7 @@ function Export-SalesforceLogs {
         [Parameter(Mandatory = $false)][int] $Limit = 50,
         [Parameter(Mandatory = $false)][string] $OutputFolder = $null,
         [Parameter(Mandatory = $true)][string] $Username
-    )       
+    )        
         
     if (($OutputFolder -eq $null) -or ($OutputFolder -eq "") ) {
         $currentFolder = (Get-Location).Path
