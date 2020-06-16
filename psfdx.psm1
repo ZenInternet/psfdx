@@ -325,6 +325,15 @@ function Add-SalesforceAlias {
     Invoke-Expression $cmd
 }
 
+function Remove-SalesforceAlias {
+    [CmdletBinding()]
+    Param(        
+        [Parameter(Mandatory = $true)][string] $Alias
+    )    
+    $cmd = "sfdx force:alias:set $Alias="
+    Invoke-Expression $cmd    
+}
+
 function Get-SalesforcePackage {
     [CmdletBinding()]
     Param([Parameter(Mandatory = $true)][string] $Path)           
