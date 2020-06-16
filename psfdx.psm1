@@ -384,6 +384,29 @@ function Get-SalesforceLog {
     return $values.result.log
 }
 
+function Export-SalesforceLogs {
+    [CmdletBinding()]
+    Param(        
+        [Parameter(Mandatory = $false)][int] $Limit = 50,
+        [Parameter(Mandatory = $false)][string] $OutputFolder = $null,
+        [Parameter(Mandatory = $true)][string] $Username
+    )       
+        
+    if (($OutputFolder -eq $null) -or ($OutputFolder -eq "") ) {
+        $currentFolder = (Get-Location).Path
+        $OutputFolder = $currentFolder        
+    }
+    if ((Test-Path -Path $OutputFolder) -eq $false) { throw "Folder $OutputFolder does not exist" }
+    Write-Verbose "Output Folder: $OutputFolder"
+
+    $logs = Get-SalesforceLogs -Username $Username | Sort-Object -Property StartTime -Descending | Select-Object -First $Limit
+    foreach ($log in $logs) {
+        $filePath = Join-Path -Path $OutputFolder -ChildPath ($log.Id + ".log")
+        Write-Verbose "Exporting file: $filePath"
+        Get-SalesforceLog -LogId $log.Id -Username $Username | Out-File -FilePath $filePath      
+    }
+}
+
 function Convert-SalesforceLog {
     [CmdletBinding()]
     Param(
