@@ -12,13 +12,13 @@ function Get-SalesforceDateTime {
 
 function Connect-Salesforce {
     [CmdletBinding()]
-    Param([Parameter(Mandatory = $false)][switch] $IsSandbox)     
-    if ($IsSandbox -eq $true) {
-        sfdx force:auth:web:login -r "https://test.salesforce.com"
+    Param([Parameter(Mandatory = $false)][switch] $IsSandbox)  
+    
+    $command = "sfdx force:auth:web:login"    
+    if ($IsSandbox -eq $true) { 
+        $command += " -r https://test.salesforce.com" 
     }
-    else {
-        sfdx force:auth:web:login
-    }
+    Invoke-Expression2 -Command $command
 }
 
 function Disconnect-Salesforce {
