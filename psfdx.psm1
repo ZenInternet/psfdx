@@ -483,3 +483,40 @@ function Get-SalesforceMetaTypes {
     $metaObjects = $describeMeta.result.metadataObjects    
     return $metaObjects.xmlName | Sort-Object
 }
+
+Export-ModuleMember Get-SalesforceDateTime
+Export-ModuleMember Connect-Salesforce
+Export-ModuleMember Disconnect-Salesforce
+Export-ModuleMember Grant-SalesforceJWT
+Export-ModuleMember Open-Salesforce
+Export-ModuleMember Get-Salesforce
+Export-ModuleMember Get-SalesforceScratchOrgs
+Export-ModuleMember New-SalesforceScratchOrg
+Export-ModuleMember Select-SalesforceObjects
+Export-ModuleMember Get-SalesforceLimits
+Export-ModuleMember Get-SalesforceDataStorage
+Export-ModuleMember Get-SalesforceApiUsage
+Export-ModuleMember Describe-SalesforceObjects
+Export-ModuleMember Describe-SalesforceObject
+Export-ModuleMember Describe-SalesforceFields
+Export-ModuleMember Describe-SalesforceCodeTypes
+Export-ModuleMember Build-SalesforceQuery
+Export-ModuleMember New-SalesforceObject
+Export-ModuleMember Set-SalesforceObject
+Export-ModuleMember Get-SalesforceRecordType
+Export-ModuleMember Pull-SalesforceCode
+Export-ModuleMember Push-SalesforceCode
+Export-ModuleMember Test-Salesforce
+Export-ModuleMember Invoke-SalesforceApexFile
+Export-ModuleMember Get-SalesforceAlias
+Export-ModuleMember Add-SalesforceAlias
+Export-ModuleMember Remove-SalesforceAlias
+Export-ModuleMember Get-SalesforcePackage
+Export-ModuleMember Watch-SalesforceLogs
+Export-ModuleMember Get-SalesforceLogs
+Export-ModuleMember Get-SalesforceLog
+Export-ModuleMember Export-SalesforceLogs
+Export-ModuleMember Convert-SalesforceLog
+Export-ModuleMember Out-Notepad
+Export-ModuleMember New-SalesforceProject
+Export-ModuleMember Get-SalesforceMetaTypes
