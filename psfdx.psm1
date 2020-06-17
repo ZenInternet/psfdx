@@ -13,6 +13,7 @@ function Show-SalesforceJsonResult {
     
     $result = $Result | ConvertFrom-Json
     if ($result.status -ne 0) {
+        Write-Debug $result
         throw ($result.message)
     }
     return $result.result
@@ -109,6 +110,17 @@ function New-SalesforceScratchOrg {
     return Show-SalesforceJsonResult -Result $result
 }
 
+function Select-SalesforceObject {
+    [CmdletBinding()]
+    Param(
+        [Parameter(Mandatory = $true)][string] $ObjectName,    
+        [Parameter(Mandatory = $true)][string] $Username,
+        [Parameter(Mandatory = $false)][switch] $UseToolingApi
+    )     
+    $query = Build-SalesforceQuery -ObjectName $ObjectName -Username $Username
+    return Select-SalesforceObjects -Query $query -Username $Username -UseToolingApi:$UseToolingApi
+}
+
 function Select-SalesforceObjects {    
     [CmdletBinding()]
     Param(
@@ -188,7 +200,7 @@ function Describe-SalesforceFields {
         [Parameter(Mandatory = $true)][string] $Username,
         [Parameter(Mandatory = $false)][switch] $UseToolingApi        
     )         
-    $result = Describe-SalesforceObject -ObjectName $ObjectName -Username $Username -UseToolingApi:$UseToolingApi
+    $result = Describe-SalesforceObject -ObjectName $ObjectName -Username $Username -UseToolingApi:$UseToolingApi 
     $result = $result.fields
     $result = $result | Select-Object name, label, type, byteLength
     return $result
@@ -522,6 +534,20 @@ function Get-SalesforceMetaTypes {
     return $result
 }
 
+function Get-SalesforceApexClass {
+    [CmdletBinding()]
+    Param(
+        [Parameter(Mandatory = $true)][string] $Name,
+        [Parameter(Mandatory = $true)][string] $Username
+    )   
+    $query = "SELECT Id, Name "
+    $query += "FROM ApexClass "
+    $query += "WHERE Name = '$Name'"
+    $result = Select-SalesforceObjects -Query $query -Username $Username
+    $result = $result | Select-Object Id, name
+    return $result
+}
+
 function Get-SalesforceCodeCoverage {
     [CmdletBinding()]
     Param(
@@ -530,9 +556,10 @@ function Get-SalesforceCodeCoverage {
     )    
     $query = "SELECT ApexTestClass.Name, TestMethodName, ApexClassOrTrigger.Name, NumLinesUncovered, NumLinesCovered, Coverage "    
     $query += "FROM ApexCodeCoverage "
-    if (($null -ne $ApexClassOrTrigger) -and ($ApexClassOrTrigger -ne '')) {
-        Write-Verbose "Filtering"
-        $query += "WHERE ApexTestClass.Name = '$ApexClassOrTrigger' "
+    if (($null -ne $ApexClassOrTrigger) -and ($ApexClassOrTrigger -ne '')) {        
+        $apexClass = Get-SalesforceApexClass -Name $ApexClassOrTrigger -Username $Username
+        $apexClassId = $apexClass.Id
+        $query += "WHERE ApexClassOrTriggerId = '$apexClassId' "
     }
 
     $result = Invoke-Expression2 -Command "sfdx force:data:soql:query -q `"$query`" -t -u $Username --json"
@@ -596,3 +623,4 @@ Export-ModuleMember Out-Notepad
 Export-ModuleMember New-SalesforceProject
 Export-ModuleMember Get-SalesforceMetaTypes
 Export-ModuleMember Get-SalesforceCodeCoverage
+Export-ModuleMember Select-SalesforceObject
