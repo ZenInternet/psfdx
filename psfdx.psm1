@@ -523,6 +523,29 @@ function New-SalesforceProject {
     return Show-SalesforceJsonResult -Result $result
 }
 
+function Set-SalesforceProject {
+    [CmdletBinding()]
+    Param( [Parameter(Mandatory = $true)][string] $DefaultUserName )       
+    $sfdxFolder = (Get-Location).Path
+    
+    if ($sfdxFolder.EndsWith(".sfdx") -eq $false) {
+        $sfdxFolder = Join-Path -Path $sfdxFolder -ChildPath ".sfdx"
+    }
+
+    if ((Test-Path -Path $sfdxFolder) -eq $false) {
+        throw ".sfdx folder does not exist ing $sfdxFolder"
+    }   
+    
+    $sfdxFile = Join-Path -Path $sfdxFolder -ChildPath "sfdx-config.json"
+    if (Test-Path -Path $sfdxFile) {
+        throw "File already exists $sfdxFile"
+    }
+
+    New-Item -Path $sfdxFile
+    $json = "{ `"defaultusername`": `"$DefaultUserName`" }"
+    Set-Content -Path $sfdxFile -Value $json
+}
+
 function Get-SalesforceMetaTypes {
     [CmdletBinding()]
     Param([Parameter(Mandatory = $true)][string] $Username)     
@@ -632,3 +655,4 @@ Export-ModuleMember New-SalesforceProject
 Export-ModuleMember Get-SalesforceMetaTypes
 Export-ModuleMember Get-SalesforceCodeCoverage
 Export-ModuleMember Select-SalesforceObject
+Export-ModuleMember Set-SalesforceProject
