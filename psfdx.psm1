@@ -117,7 +117,7 @@ function Select-SalesforceObjects {
         [Parameter(Mandatory = $false)][switch] $UseToolingApi
     )            
     Write-Verbose $Query
-    $command = 'sfdx force:data:soql:query -q "$Query" -u $Username '
+    $command = "sfdx force:data:soql:query -q `"$Query`" -u $Username "
     if ($UseToolingApi) {
         $command += "-t "
     }
@@ -237,7 +237,7 @@ function New-SalesforceObject {
         [Parameter(Mandatory = $true)][string] $Username
     )
     Write-Verbose $FieldUpdates
-    $command = 'sfdx force:data:record:create -s $ObjectType -v "$FieldUpdates" -u $Username'
+    $command = "sfdx force:data:record:create -s $ObjectType -v `"$FieldUpdates`" -u $Username"
     return Invoke-Expression2 -Command $command    
 }
 
@@ -250,7 +250,7 @@ function Set-SalesforceObject {
         [Parameter(Mandatory = $true)][string] $Username
     )
     Write-Verbose $FieldUpdates
-    $command = 'sfdx force:data:record:update -s $ObjectType -i $Id -v "$FieldUpdates" -u $Username'
+    $command = "sfdx force:data:record:update -s $ObjectType -i $Id -v `"$FieldUpdates`" -u $Username"
     return Invoke-Expression2 -Command $command        
 }
 
@@ -522,6 +522,43 @@ function Get-SalesforceMetaTypes {
     return $result
 }
 
+function Get-SalesforceCodeCoverage {
+    [CmdletBinding()]
+    Param(
+        [Parameter(Mandatory = $false)][string] $ApexClassOrTrigger = $null,
+        [Parameter(Mandatory = $true)][string] $Username
+    )    
+    $query = "SELECT ApexTestClass.Name, TestMethodName, ApexClassOrTrigger.Name, NumLinesUncovered, NumLinesCovered, Coverage "    
+    $query += "FROM ApexCodeCoverage "
+    if (($null -ne $ApexClassOrTrigger) -and ($ApexClassOrTrigger -ne '')) {
+        Write-Verbose "Filtering"
+        $query += "WHERE ApexTestClass.Name = '$ApexClassOrTrigger' "
+    }
+
+    $result = Invoke-Expression2 -Command "sfdx force:data:soql:query -q `"$query`" -t -u $Username --json"
+    $result = $result | ConvertFrom-Json
+    if ($result.status -ne 0) {
+        throw ($result.message)
+    }
+    $result = $result.result.records   
+    
+    $values = @()
+    foreach ($item in $result) {
+        $value = New-Object -TypeName PSObject
+        $value | Add-Member -MemberType NoteProperty -Name 'ApexTestClass' -Value $item.ApexTestClass.Name
+        $value | Add-Member -MemberType NoteProperty -Name 'ApexClassOrTrigger' -Value $item.ApexClassOrTrigger.Name
+        $value | Add-Member -MemberType NoteProperty -Name 'TestMethodName' -Value $item.TestMethodName
+        $value | Add-Member -MemberType NoteProperty -Name 'NumLinesCovered' -Value $item.NumLinesCovered
+        $value | Add-Member -MemberType NoteProperty -Name 'NumLinesUncovered' -Value $item.NumLinesUncovered                
+        $value | Add-Member -MemberType NoteProperty -Name 'coveredLines' -Value $item.Coverage.coveredLines
+        $value | Add-Member -MemberType NoteProperty -Name 'uncoveredLines' -Value $item.Coverage.uncoveredLines
+        $value | Add-Member -MemberType NoteProperty -Name 'namespace' -Value $item.Coverage.namespace
+        $values += $value        
+    }
+
+    return $values
+}
+
 Export-ModuleMember Get-SalesforceDateTime
 Export-ModuleMember Connect-Salesforce
 Export-ModuleMember Disconnect-Salesforce
@@ -558,3 +595,4 @@ Export-ModuleMember Convert-SalesforceLog
 Export-ModuleMember Out-Notepad
 Export-ModuleMember New-SalesforceProject
 Export-ModuleMember Get-SalesforceMetaTypes
+Export-ModuleMember Get-SalesforceCodeCoverage
