@@ -572,14 +572,22 @@ function Get-SalesforceCodeCoverage {
     $values = @()
     foreach ($item in $result) {
         $value = New-Object -TypeName PSObject
-        $value | Add-Member -MemberType NoteProperty -Name 'ApexTestClass' -Value $item.ApexTestClass.Name
         $value | Add-Member -MemberType NoteProperty -Name 'ApexClassOrTrigger' -Value $item.ApexClassOrTrigger.Name
-        $value | Add-Member -MemberType NoteProperty -Name 'TestMethodName' -Value $item.TestMethodName
+        $value | Add-Member -MemberType NoteProperty -Name 'ApexTestClass' -Value $item.ApexTestClass.Name        
+        $value | Add-Member -MemberType NoteProperty -Name 'TestMethodName' -Value $item.TestMethodName                   
+
+        $codeCoverage = 0
+        $codeLength = $item.NumLinesCovered + $item.NumLinesUncovered
+        if ($codeLength -gt 0) {
+            $codeCoverage = $item.NumLinesCovered / $codeLength
+        }
+        $value | Add-Member -MemberType NoteProperty -Name 'CodeCoverage' -Value $codeCoverage.toString("P")                       
+        $codeCoverageOK = $false
+        if ($codeCoverage -ge 0.75) { $codeCoverageOK = $true }
+
+        $value | Add-Member -MemberType NoteProperty -Name 'CodeCoverageOK' -Value $codeCoverageOK              
         $value | Add-Member -MemberType NoteProperty -Name 'NumLinesCovered' -Value $item.NumLinesCovered
-        $value | Add-Member -MemberType NoteProperty -Name 'NumLinesUncovered' -Value $item.NumLinesUncovered                
-        $value | Add-Member -MemberType NoteProperty -Name 'coveredLines' -Value $item.Coverage.coveredLines
-        $value | Add-Member -MemberType NoteProperty -Name 'uncoveredLines' -Value $item.Coverage.uncoveredLines
-        $value | Add-Member -MemberType NoteProperty -Name 'namespace' -Value $item.Coverage.namespace
+        $value | Add-Member -MemberType NoteProperty -Name 'NumLinesUncovered' -Value $item.NumLinesUncovered   
         $values += $value        
     }
 
