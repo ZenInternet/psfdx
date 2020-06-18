@@ -283,10 +283,17 @@ function Pull-SalesforceCode {
     [CmdletBinding()]
     Param(        
         [Parameter(Mandatory = $true)][string] $Username,
-        [Parameter(Mandatory = $false)][string][ValidateSet('ApexTrigger','ApexClass', 'LightningComponentBundle')] $CodeType
+        [Parameter(Mandatory = $false)][string][ValidateSet('Apex', 'ApexTrigger','ApexClass', 'LightningComponentBundle')] $CodeType
     )  
 
     if ($CodeType) {
+
+        if ($CodeType -eq 'Apex') {
+            Invoke-Expression2 -Command "sfdx force:source:retrieve -m ApexClass -u $Username"
+            Invoke-Expression2 -Command "sfdx force:source:retrieve -m ApexTrigger -u $Username"
+            return
+        }
+
         return Invoke-Expression2 -Command "sfdx force:source:retrieve -m $CodeType -u $Username"
     }
     
@@ -517,16 +524,33 @@ function New-SalesforceProject {
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory = $true)][string] $Name,
-        [Parameter(Mandatory = $false)][string][ValidateSet('standard','empty')] $Template = 'standard'
+        [Parameter(Mandatory = $false)][string][ValidateSet('standard','empty')] $Template = 'standard',
+        [Parameter(Mandatory = $false)][string] $DefaultUserName = $null
     )      
     $result = Invoke-Expression2 -Command "sfdx force:project:create --projectname $Name --template $Template --json" 
-    return Show-SalesforceJsonResult -Result $result
+    $result = Show-SalesforceJsonResult -Result $result
+    
+    if (($null -ne $DefaultUserName) -and ($DefaultUserName -ne '')) {                
+        $projectFolder = Join-Path -Path $result.outputDir -ChildPath $Name
+        New-Item -Path $projectFolder -Name ".sfdx" -ItemType Directory | Out-Null
+        Set-SalesforceProject -DefaultUserName $DefaultUserName -ProjectFolder $projectFolder 
+    }
+
+    return $result
 }
 
 function Set-SalesforceProject {
     [CmdletBinding()]
-    Param( [Parameter(Mandatory = $true)][string] $DefaultUserName )       
-    $sfdxFolder = (Get-Location).Path
+    Param( 
+        [Parameter(Mandatory = $true)][string] $DefaultUserName,
+        [Parameter(Mandatory = $false)][string] $ProjectFolder
+    )       
+
+    if (($null -eq $ProjectFolder) -or ($ProjectFolder -eq '')) {
+        $sfdxFolder = (Get-Location).Path
+    } else {
+        $sfdxFolder = $ProjectFolder
+    }    
     
     if ($sfdxFolder.EndsWith(".sfdx") -eq $false) {
         $sfdxFolder = Join-Path -Path $sfdxFolder -ChildPath ".sfdx"
@@ -541,9 +565,9 @@ function Set-SalesforceProject {
         throw "File already exists $sfdxFile"
     }
 
-    New-Item -Path $sfdxFile
+    New-Item -Path $sfdxFile | Out-Null
     $json = "{ `"defaultusername`": `"$DefaultUserName`" }"
-    Set-Content -Path $sfdxFile -Value $json
+    Set-Content -Path $sfdxFile -Value $json 
 }
 
 function Get-SalesforceMetaTypes {
