@@ -1,13 +1,13 @@
 $toolingApiObjects = @("SandboxInfo", "ProfileLayout")
 
-function Invoke-Expression2 {
+function Invoke-Sfdx {
     [CmdletBinding()]
     Param([Parameter(Mandatory = $true)][string] $Command)        
     Write-Verbose $Command
     return Invoke-Expression -Command $Command
 }
 
-function Show-SalesforceJsonResult {
+function Show-SfdxResult {
     [CmdletBinding()]
     Param([Parameter(Mandatory = $true)][psobject] $Result)        
     
@@ -35,13 +35,13 @@ function Connect-Salesforce {
     if ($IsSandbox -eq $true) { 
         $command += " -r https://test.salesforce.com" 
     }
-    Invoke-Expression2 -Command $command
+    Invoke-Sfdx -Command $command
 }
 
 function Disconnect-Salesforce {
     [CmdletBinding()]
     Param([Parameter(Mandatory = $true)][string] $Username)         
-    Invoke-Expression2 -Command "sfdx force:auth:logout -u $Username -p"
+    Invoke-Sfdx -Command "sfdx force:auth:logout -u $Username -p"
 }
 
 function Grant-SalesforceJWT {
@@ -66,20 +66,20 @@ function Grant-SalesforceJWT {
     }
     $command += "--json"
 
-    $result = Invoke-Expression2 -Command $command  
-    return Show-SalesforceJsonResult -Result $result
+    $result = Invoke-Sfdx -Command $command  
+    return Show-SfdxResult -Result $result
 }
 
 function Open-Salesforce {
     [CmdletBinding()]
     Param([Parameter(Mandatory = $true)][string] $Username)     
-    Invoke-Expression2 -Command "sfdx force:org:open -u $Username"    
+    Invoke-Sfdx -Command "sfdx force:org:open -u $Username"    
 }
 
 function Get-Salesforce {    
     [CmdletBinding()]
     Param()    
-    $result = Invoke-Expression2 -Command "sfdx force:org:list --json"
+    $result = Invoke-Sfdx -Command "sfdx force:org:list --json"
     $result = $result | ConvertFrom-Json
     $result = $result.result.nonScratchOrgs # Exclude Scratch Orgs
     $result = $result | Select-Object orgId, instanceUrl, username, connectedStatus, isDevHub, lastUsed, alias
@@ -89,7 +89,7 @@ function Get-Salesforce {
 function Get-SalesforceScratchOrgs {
     [CmdletBinding()]
     Param([Parameter(Mandatory = $false)][switch] $Last)
-    $result = Invoke-Expression2 -Command "sfdx force:org:list --all --json"
+    $result = Invoke-Sfdx -Command "sfdx force:org:list --all --json"
     $result = $result | ConvertFrom-Json   
     $result = $result.result.scratchOrgs
     $result = $result | Select-Object orgId, instanceUrl, username, connectedStatus, isDevHub, lastUsed, alias
@@ -105,9 +105,9 @@ function New-SalesforceScratchOrg {
         [Parameter(Mandatory = $false)][string] $DefinitionFile = 'config/project-scratch-def.json',
         [Parameter(Mandatory = $true)][string] $Username
     )     
-    $result = Invoke-Expression2 -Command "sfdx force:org:create -f $DefinitionFile -v $Username --json"   
+    $result = Invoke-Sfdx -Command "sfdx force:org:create -f $DefinitionFile -v $Username --json"   
     $result = $result | ConvertFrom-Json
-    return Show-SalesforceJsonResult -Result $result
+    return Show-SfdxResult -Result $result
 }
 
 function Select-SalesforceObject {
@@ -149,8 +149,8 @@ function Select-SalesforceObjects {
 function Get-SalesforceLimits {
     [CmdletBinding()]
     Param([Parameter(Mandatory = $true)][string] $Username)  
-    $result = Invoke-Expression2 -Command "sfdx force:limits:api:display -u $Username --json"
-    return Show-SalesforceJsonResult -Result $result    
+    $result = Invoke-Sfdx -Command "sfdx force:limits:api:display -u $Username --json"
+    return Show-SfdxResult -Result $result    
 }
 
 function Get-SalesforceDataStorage {
@@ -173,8 +173,8 @@ function Get-SalesforceApiUsage {
 function Describe-SalesforceObjects {
     [CmdletBinding()]
     Param([Parameter(Mandatory = $true)][string] $Username) 
-    $result = Invoke-Expression2 -Command "sfdx force:schema:sobject:list -c all -u $Username --json"
-    return Show-SalesforceJsonResult -Result $result    
+    $result = Invoke-Sfdx -Command "sfdx force:schema:sobject:list -c all -u $Username --json"
+    return Show-SfdxResult -Result $result    
 }
 
 function Describe-SalesforceObject {
@@ -189,8 +189,8 @@ function Describe-SalesforceObject {
         $command += "-t "
     }    
     $command += "--json"
-    $result = Invoke-Expression2 -Command $command
-    return Show-SalesforceJsonResult -Result $result
+    $result = Invoke-Sfdx -Command $command
+    return Show-SfdxResult -Result $result
 }
 
 function Describe-SalesforceFields {
@@ -209,7 +209,7 @@ function Describe-SalesforceFields {
 function Describe-SalesforceCodeTypes {
     [CmdletBinding()]
     Param([Parameter(Mandatory = $true)][string] $Username)  
-    $result = Invoke-Expression2 -Command "sfdx force:mdapi:describemetadata -u $Username --json"           
+    $result = Invoke-Sfdx -Command "sfdx force:mdapi:describemetadata -u $Username --json"           
     $result = $result | ConvertFrom-Json
     $result = $result.result.metadataObjects
     $result = $result | Select-Object xmlName
@@ -250,7 +250,7 @@ function New-SalesforceObject {
     )
     Write-Verbose $FieldUpdates
     $command = "sfdx force:data:record:create -s $ObjectType -v `"$FieldUpdates`" -u $Username"
-    return Invoke-Expression2 -Command $command    
+    return Invoke-Sfdx -Command $command    
 }
 
 function Set-SalesforceObject {
@@ -263,7 +263,7 @@ function Set-SalesforceObject {
     )
     Write-Verbose $FieldUpdates
     $command = "sfdx force:data:record:update -s $ObjectType -i $Id -v `"$FieldUpdates`" -u $Username"
-    return Invoke-Expression2 -Command $command        
+    return Invoke-Sfdx -Command $command        
 }
 
 function Get-SalesforceRecordType {
@@ -289,18 +289,18 @@ function Pull-SalesforceCode {
     if ($CodeType) {
 
         if ($CodeType -eq 'Apex') {
-            Invoke-Expression2 -Command "sfdx force:source:retrieve -m ApexClass -u $Username"
-            Invoke-Expression2 -Command "sfdx force:source:retrieve -m ApexTrigger -u $Username"
+            Invoke-Sfdx -Command "sfdx force:source:retrieve -m ApexClass -u $Username"
+            Invoke-Sfdx -Command "sfdx force:source:retrieve -m ApexTrigger -u $Username"
             return
         }
 
-        return Invoke-Expression2 -Command "sfdx force:source:retrieve -m $CodeType -u $Username"
+        return Invoke-Sfdx -Command "sfdx force:source:retrieve -m $CodeType -u $Username"
     }
     
     $metaTypes = Get-SalesforceMetaTypes -Username $Username    
     $count = 0
     foreach ($metaType in $metaTypes) {
-        Invoke-Expression2 -Command "sfdx force:source:retrieve -m $metaType -u $Username"        
+        Invoke-Sfdx -Command "sfdx force:source:retrieve -m $metaType -u $Username"        
         $count = $count + 1   
         Write-Progress -Activity 'Getting Salesforce MetaData' -Status $metaType -PercentComplete (($count / $metaTypes.count) * 100) 
     }
@@ -327,7 +327,7 @@ function Push-SalesforceCode {
         throw "Unrecognised CodeType: $CodeType"    
     }
     $command += ":$Name -u $Username"
-    return Invoke-Expression2 -Command $command
+    return Invoke-Sfdx -Command $command
 }
 
 function Test-Salesforce {
@@ -347,7 +347,7 @@ function Test-Salesforce {
     else {                                  # Run all Tests
         $command = "sfdx force:apex:test:run -l RunLocalTests -w:10 -d $PSScriptRoot -u $Username --codecoverage -r json"        
     }
-    $result = Invoke-Expression2 -Command $command
+    $result = Invoke-Sfdx -Command $command
     $result = $result | ConvertFrom-Json
     
     [int]$codeCoverage = ($result.result.summary.testRunCoverage -replace '%')
@@ -368,14 +368,14 @@ function Invoke-SalesforceApexFile {
         [Parameter(Mandatory = $true)][string] $ApexFile,       
         [Parameter(Mandatory = $true)][string] $Username
     )
-    $result = Invoke-Expression2 -Command "sfdx force:apex:execute -f $ApexFile -u $Username --json"
-    return Show-SalesforceJsonResult -Result $result
+    $result = Invoke-Sfdx -Command "sfdx force:apex:execute -f $ApexFile -u $Username --json"
+    return Show-SfdxResult -Result $result
 }
 
 function Get-SalesforceAlias {
     [CmdletBinding()]
-    $result = Invoke-Expression2 -Command "sfdx force:alias:list --json"
-    return Show-SalesforceJsonResult -Result $result
+    $result = Invoke-Sfdx -Command "sfdx force:alias:list --json"
+    return Show-SfdxResult -Result $result
 }
 
 function Add-SalesforceAlias {
@@ -384,13 +384,13 @@ function Add-SalesforceAlias {
         [Parameter(Mandatory = $true)][string] $Alias,       
         [Parameter(Mandatory = $true)][string] $Username
     )    
-    Invoke-Expression2 -Command "sfdx force:alias:set $Alias=$Username"    
+    Invoke-Sfdx -Command "sfdx force:alias:set $Alias=$Username"    
 }
 
 function Remove-SalesforceAlias {
     [CmdletBinding()]
     Param([Parameter(Mandatory = $true)][string] $Alias)            
-    Invoke-Expression2 -Command "sfdx force:alias:set $Alias="
+    Invoke-Sfdx -Command "sfdx force:alias:set $Alias="
 }
 
 function Get-SalesforcePackage {
@@ -423,14 +423,14 @@ function Watch-SalesforceLogs {
         $command += "-s "
     }
     $command += "-c -u $Username"
-    return Invoke-Expression2 -Command $command
+    return Invoke-Sfdx -Command $command
 }
 
 function Get-SalesforceLogs {
     [CmdletBinding()]
     Param([Parameter(Mandatory = $true)][string] $Username)  
-    $result = Invoke-Expression2 -Command "sfdx force:apex:log:list -u $Username --json"
-    return Show-SalesforceJsonResult -Result $result
+    $result = Invoke-Sfdx -Command "sfdx force:apex:log:list -u $Username --json"
+    return Show-SfdxResult -Result $result
 }
 
 function Get-SalesforceLog {
@@ -447,7 +447,7 @@ function Get-SalesforceLog {
         $LogId = (Get-SalesforceLogs -Username $Username | Sort-Object StartTime -Descending | Select-Object -First 1).Id
     }
 
-    $result = Invoke-Expression2 -Command "sfdx force:apex:log:get -i $LogId -u $Username --json"
+    $result = Invoke-Sfdx -Command "sfdx force:apex:log:get -i $LogId -u $Username --json"
     $result = $result | ConvertFrom-Json
     # TODO: Check status
     return $result.result.log
@@ -527,8 +527,8 @@ function New-SalesforceProject {
         [Parameter(Mandatory = $false)][string][ValidateSet('standard','empty')] $Template = 'standard',
         [Parameter(Mandatory = $false)][string] $DefaultUserName = $null
     )      
-    $result = Invoke-Expression2 -Command "sfdx force:project:create --projectname $Name --template $Template --json" 
-    $result = Show-SalesforceJsonResult -Result $result
+    $result = Invoke-Sfdx -Command "sfdx force:project:create --projectname $Name --template $Template --json" 
+    $result = Show-SfdxResult -Result $result
     
     if (($null -ne $DefaultUserName) -and ($DefaultUserName -ne '')) {                
         $projectFolder = Join-Path -Path $result.outputDir -ChildPath $Name
@@ -574,7 +574,7 @@ function Get-SalesforceMetaTypes {
     [CmdletBinding()]
     Param([Parameter(Mandatory = $true)][string] $Username)     
 
-    $result = Invoke-Expression2 -Command "sfdx force:mdapi:describemetadata -u $username --json"
+    $result = Invoke-Sfdx -Command "sfdx force:mdapi:describemetadata -u $username --json"
     $result = $result | ConvertFrom-Json
     $result = $result.result.metadataObjects    
     $result = $result.xmlName | Sort-Object
@@ -609,7 +609,7 @@ function Get-SalesforceCodeCoverage {
         $query += "WHERE ApexClassOrTriggerId = '$apexClassId' "
     }
 
-    $result = Invoke-Expression2 -Command "sfdx force:data:soql:query -q `"$query`" -t -u $Username --json"
+    $result = Invoke-Sfdx -Command "sfdx force:data:soql:query -q `"$query`" -t -u $Username --json"
     $result = $result | ConvertFrom-Json
     if ($result.status -ne 0) {
         throw ($result.message)
