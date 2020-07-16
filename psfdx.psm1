@@ -117,7 +117,7 @@ function Select-SalesforceObject {
         [Parameter(Mandatory = $true)][string] $Username,
         [Parameter(Mandatory = $false)][switch] $UseToolingApi
     )     
-    $query = Build-SalesforceQuery -ObjectName $ObjectName -Username $Username
+    $query = Build-SalesforceQuery -ObjectName $ObjectName -Username $Username -UseToolingApi:$UseToolingApi
     return Select-SalesforceObjects -Query $query -Username $Username -UseToolingApi:$UseToolingApi
 }
 
@@ -641,6 +641,32 @@ function Get-SalesforceCodeCoverage {
     return $values
 }
 
+function Invoke-SalesforceApi {
+    [CmdletBinding()]
+    Param(
+        [Parameter(Mandatory = $true)][string] $Url,
+        [Parameter(Mandatory = $true)][string] $Username,
+        [Parameter(Mandatory = $true)][string] $Password,        
+        [Parameter(Mandatory = $true)][string] $Token,
+        [Parameter(Mandatory = $true)][string] $ClientId,
+        [Parameter(Mandatory = $true)][string] $ClientSecret,
+        [Parameter(Mandatory = $false)][switch] $IsSandbox
+    )      
+    
+    $loginUrl = "http://login.salesforce.com/"
+    if ($IsSandbox) {
+        $loginUrl = "https://test.salesforce.com"
+    }
+
+    $passwordAndToken = $Password + $Token    
+    $loginRequest = @{grant_type='password';client_id=$ClientId;client_secret=$ClientSecret;username=$Username;password=$passwordAndToken;}
+    $contentType = "application/x-www-form-urlencoded;charset=UTF-8"
+  
+    $loginResponse = Invoke-RestMethod -Uri $loginUrl -Method POST -Body $loginRequest -ContentType $contentType  
+    if (!$loginResponse.access_token) { throw "Login Failed" }  
+    return $loginResponse    
+}
+
 Export-ModuleMember Get-SalesforceDateTime
 Export-ModuleMember Connect-Salesforce
 Export-ModuleMember Disconnect-Salesforce
@@ -680,3 +706,4 @@ Export-ModuleMember Get-SalesforceMetaTypes
 Export-ModuleMember Get-SalesforceCodeCoverage
 Export-ModuleMember Select-SalesforceObject
 Export-ModuleMember Set-SalesforceProject
+Export-ModuleMember Invoke-SalesforceApi
