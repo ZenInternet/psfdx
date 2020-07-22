@@ -652,7 +652,7 @@ function Login-SalesforceApi {
         [Parameter(Mandatory = $false)][switch] $IsSandbox
     )       
 
-    $loginUrl = "http://login.salesforce.com/services/oauth2/token"
+    $loginUrl = "https://login.salesforce.com/services/oauth2/token"
     if ($IsSandbox) {
         $loginUrl = "https://test.salesforce.com/services/oauth2/token"
     }     
