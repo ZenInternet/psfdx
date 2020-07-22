@@ -673,7 +673,7 @@ function Invoke-SalesforceApi {
     Param(
         [Parameter(Mandatory = $true)][string] $Url,
         [Parameter(Mandatory = $true)][string] $AccessToken,
-        [Parameter(Mandatory = $false)][string][ValidateSet('GET','POST')] $Method = "GET"
+        [Parameter(Mandatory = $false)][string][ValidateSet('GET','POST', 'PATCH', 'DELETE')] $Method = "GET"
     )          
     return Invoke-RestMethod -Uri $Url -Method $Method -Headers @{Authorization="OAuth " + $AccessToken}
 }
