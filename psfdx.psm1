@@ -657,21 +657,15 @@ function Login-SalesforceApi {
         $loginUrl = "https://test.salesforce.com/services/oauth2/token"
     }     
         
-    try {        
-        return Invoke-RestMethod -Uri $loginUrl `
-            -Method Post `
-            -Body @{
-                grant_type = "password"
-                client_id = "$ClientId"
-                client_secret = "$ClientSecret"
-                username = "$Username"
-                password = ($Password + $Token)
-            }            
-    } catch {
-        $ErrorMessage = $_.Exception.Message
-        Write-Verbose -Message $ErrorMessage
-        throw "Error $ErrorMessage"
-    } 
+    return Invoke-RestMethod -Uri $loginUrl `
+        -Method Post `
+        -Body @{
+            grant_type = "password"
+            client_id = "$ClientId"
+            client_secret = "$ClientSecret"
+            username = "$Username"
+            password = ($Password + $Token)
+        }
 }
 
 function Invoke-SalesforceApi {
