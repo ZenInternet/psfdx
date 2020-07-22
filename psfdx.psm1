@@ -641,30 +641,47 @@ function Get-SalesforceCodeCoverage {
     return $values
 }
 
-function Invoke-SalesforceApi {
+function Login-SalesforceApi {
     [CmdletBinding()]
-    Param(
-        [Parameter(Mandatory = $true)][string] $Url,
+    Param(        
         [Parameter(Mandatory = $true)][string] $Username,
         [Parameter(Mandatory = $true)][string] $Password,        
         [Parameter(Mandatory = $true)][string] $Token,
         [Parameter(Mandatory = $true)][string] $ClientId,
         [Parameter(Mandatory = $true)][string] $ClientSecret,
         [Parameter(Mandatory = $false)][switch] $IsSandbox
-    )      
-    
-    $loginUrl = "http://login.salesforce.com/"
-    if ($IsSandbox) {
-        $loginUrl = "https://test.salesforce.com"
-    }
+    )       
 
-    $passwordAndToken = $Password + $Token    
-    $loginRequest = @{grant_type='password';client_id=$ClientId;client_secret=$ClientSecret;username=$Username;password=$passwordAndToken;}
-    $contentType = "application/x-www-form-urlencoded;charset=UTF-8"
-  
-    $loginResponse = Invoke-RestMethod -Uri $loginUrl -Method POST -Body $loginRequest -ContentType $contentType  
-    if (!$loginResponse.access_token) { throw "Login Failed" }  
-    return $loginResponse    
+    $loginUrl = "http://login.salesforce.com/services/oauth2/token"
+    if ($IsSandbox) {
+        $loginUrl = "https://test.salesforce.com/services/oauth2/token"
+    }     
+        
+    try {        
+        return Invoke-RestMethod -Uri $loginUrl `
+            -Method Post `
+            -Body @{
+                grant_type = "password"
+                client_id = "$ClientId"
+                client_secret = "$ClientSecret"
+                username = "$Username"
+                password = ($Password + $Token)
+            }            
+    } catch {
+        $ErrorMessage = $_.Exception.Message
+        Write-Verbose -Message $ErrorMessage
+        throw "Error $ErrorMessage"
+    } 
+}
+
+function Invoke-SalesforceApi {
+    [CmdletBinding()]
+    Param(
+        [Parameter(Mandatory = $true)][string] $Url,
+        [Parameter(Mandatory = $true)][string] $AccessToken,
+        [Parameter(Mandatory = $false)][string][ValidateSet('GET','POST')] $Method = "GET"
+    )          
+    return Invoke-RestMethod -Uri $Url -Method $Method -Headers @{Authorization="OAuth " + $AccessToken}
 }
 
 Export-ModuleMember Get-SalesforceDateTime
@@ -706,4 +723,5 @@ Export-ModuleMember Get-SalesforceMetaTypes
 Export-ModuleMember Get-SalesforceCodeCoverage
 Export-ModuleMember Select-SalesforceObject
 Export-ModuleMember Set-SalesforceProject
+Export-ModuleMember Login-SalesforceApi
 Export-ModuleMember Invoke-SalesforceApi
