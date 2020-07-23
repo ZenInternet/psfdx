@@ -415,14 +415,16 @@ function Get-SalesforcePackage {
 function Watch-SalesforceLogs {
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $true)][string] $Username,
-        [Parameter(Mandatory = $false)][switch] $IncludeTraceFlag        
+        [Parameter(Mandatory = $true)][string] $Username,        
+        [Parameter(Mandatory = $false)][switch] $UseDebugLogSetup        
     )  
     $command = "sfdx force:apex:log:tail "  
-    if ($IncludeTraceFlag) {
-        $command += "-s "
+    if ($UseDebugLogSetup) {
+        $command += ""
+    } else {    
+        $command += "--skiptraceflag "
     }
-    $command += "-c -u $Username"
+    $command += "--color -u $Username"
     return Invoke-Sfdx -Command $command
 }
 
