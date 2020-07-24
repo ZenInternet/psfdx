@@ -283,17 +283,15 @@ function Pull-SalesforceCode {
     [CmdletBinding()]
     Param(        
         [Parameter(Mandatory = $true)][string] $Username,
-        [Parameter(Mandatory = $false)][string][ValidateSet('Apex', 'ApexTrigger','ApexClass', 'LightningComponentBundle')] $CodeType
+        [Parameter(Mandatory = $false)][string][ValidateSet('Apex', 'ApexTrigger','ApexClass', 'LightningComponentBundle', 'Profile')] $CodeType
     )  
 
     if ($CodeType) {
-
         if ($CodeType -eq 'Apex') {
             Invoke-Sfdx -Command "sfdx force:source:retrieve -m ApexClass -u $Username"
             Invoke-Sfdx -Command "sfdx force:source:retrieve -m ApexTrigger -u $Username"
             return
         }
-
         return Invoke-Sfdx -Command "sfdx force:source:retrieve -m $CodeType -u $Username"
     }
     
@@ -309,7 +307,7 @@ function Pull-SalesforceCode {
 function Push-SalesforceCode {
     [CmdletBinding()]
     Param(        
-        [Parameter(Mandatory = $false)][string][ValidateSet('ApexTrigger','ApexClass', 'LightningComponentBundle')] $CodeType = 'ApexClass',       
+        [Parameter(Mandatory = $false)][string][ValidateSet('ApexTrigger','ApexClass', 'LightningComponentBundle', 'Profile')] $CodeType = 'ApexClass',       
         [Parameter(Mandatory = $true)][string] $Name,       
         [Parameter(Mandatory = $true)][string] $Username
     )    
